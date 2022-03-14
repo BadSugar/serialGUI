@@ -10,3 +10,7 @@ Read/send to/from a connected serial device
 ## Usage
 
 `python3 main.py`
+
+## Preview
+
+![Preview](imgs/preview.png)
