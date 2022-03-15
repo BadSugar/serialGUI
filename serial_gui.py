@@ -46,17 +46,16 @@ class serial_ui():
 
     def create_ui_msg_column(self):
         with dpg.group(horizontal=True):
-            dpg.add_text(default_value="Message: ")
-            user_msg = dpg.add_input_text(tag="usrMsgTxt", default_value="help", width=755)
+            dpg.add_text(default_value="Message")
+            user_msg = dpg.add_input_text(tag="usrMsgTxt", default_value="help", width=769)
             dpg.add_button(tag="sendMsgBtn", label="Send",
                 callback=self.send_msg_to_serial_port_callback, user_data={'userMsgTag': user_msg})
 
     def create_column_above_logger(self):
         with dpg.group(horizontal=True):
-            # Clear button
+            dpg.add_text(default_value="Filter")
+            dpg.add_input_text(callback=lambda sender: dpg.set_value(self.filter_id, dpg.get_value(sender)), width=770)
             dpg.add_button(label="Clear", callback=lambda: dpg.delete_item(self.filter_id, children_only=True))
-            # Filter Text
-            dpg.add_input_text(callback=lambda sender: dpg.set_value(self.filter_id, dpg.get_value(sender)), width=819)
 
     def create_logger_window(self):
         ## this creates a window at bottom
@@ -118,12 +117,13 @@ class serial_ui():
         user_data:
         any python object you want to send to the function
         """
+        msg_to_send = dpg.get_value(user_data['userMsgTag'])
+
         if not self.SELECTED_DEVICE:
             print("User is not selected any device.")
-        if not self.my_serial.connected:
+        elif not self.my_serial.connected:
             print("Device is not connected")
-        msg_to_send = dpg.get_value(user_data['userMsgTag'])
-        if not msg_to_send:
+        elif not msg_to_send:
             print("No message.")
         else:
             self.my_serial.write_to_serial(msg_to_send)
