@@ -1,5 +1,5 @@
 import dearpygui.dearpygui as dpg
-from themes import create_theme_imgui_light ,create_theme_client, create_theme_server
+from themes import create_theme_imgui_light, create_theme_client, create_theme_server
 from Serial import mySerial
 
 
@@ -44,18 +44,6 @@ class serial_ui():
         dpg.configure_item("__listPortsTag", items=portList)
 
 
-    def create_ui_msg_column(self):
-        with dpg.group(horizontal=True):
-            dpg.add_text(default_value="Message")
-            user_msg = dpg.add_input_text(tag="usrMsgTxt", default_value="help", width=769)
-            dpg.add_button(tag="sendMsgBtn", label="Send",
-                callback=self.send_msg_to_serial_port_callback, user_data={'userMsgTag': user_msg})
-
-    def create_column_above_logger(self):
-        with dpg.group(horizontal=True):
-            dpg.add_text(default_value="Filter")
-            dpg.add_input_text(callback=lambda sender: dpg.set_value(self.filter_id, dpg.get_value(sender)), width=770)
-            dpg.add_button(label="Clear", callback=lambda: dpg.delete_item(self.filter_id, children_only=True))
 
     def create_logger_window(self):
         ## this creates a window at bottom
@@ -63,19 +51,42 @@ class serial_ui():
         self.filter_id = dpg.add_filter_set(parent=child_logger_id)
 
 
+    def create_msg_and_filter_columns(self):
+        with dpg.group(horizontal=True):
+            with dpg.group() as text_group:
+                dpg.add_text(default_value="Message", parent=text_group)
+                dpg.add_text(default_value="Filter", parent=text_group)
+            with dpg.group() as inp_text_group:
+                user_msg = dpg.add_input_text(tag="usrMsgTxt",
+                        default_value="help", width=720,
+                        parent=inp_text_group)
+                dpg.add_input_text(callback=lambda sender: 
+                        dpg.set_value(self.filter_id, dpg.get_value(sender)),
+                        width=720, parent=inp_text_group)
+            with dpg.group() as button_group:
+                dpg.add_button(tag="sendMsgBtn", label="Send",
+                    callback=self.send_msg_to_serial_port_callback,
+                    user_data={'userMsgTag': user_msg}, parent=button_group)
+                dpg.add_button(label="Clear Filter",
+                    callback=lambda: dpg.delete_item(self.filter_id,
+                        children_only=True), parent=button_group)
+
+
     def create_primary_window(self):
         with dpg.window(tag="Primary Window", autosize=True) as self.prime_window:
             with dpg.group(horizontal=True):
-                dpg.add_button(tag="avPortsBtn", label="Refresh Available Ports", callback=self.update_ports_callback)
                 # After clicking it will show a list view of ports
+                dpg.add_button(tag="avPortsBtn", label="Refresh Available Ports", callback=self.update_ports_callback)
                 if not self.portList:
-                    dpg.add_listbox(["No Ports available"], tag="__listPortsTag", width=300,
+                    dpg.add_listbox(["No Ports available"], tag="__listPortsTag",
+                            width=300,
                             num_items=-1, callback=self.selected_port_callback)
                 else:
-                    dpg.add_listbox(self.portList, tag="__listPortsTag", width=300,
-                        num_items=2, callback=self.selected_port_callback)
-            self.create_ui_msg_column()
-            self.create_column_above_logger()
+                    dpg.add_listbox(self.portList, tag="__listPortsTag",
+                        width=300, num_items=2,
+                        callback=self.selected_port_callback)
+
+            self.create_msg_and_filter_columns()
             self.create_logger_window()
 
     def dpg_setup(self):
